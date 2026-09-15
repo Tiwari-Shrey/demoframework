@@ -1,0 +1,44 @@
+node_modules/
+
+# Allure
+reports/allure-results/
+reports/allure-report/
+reports/screenshots/distortion/
+
+# Playwright
+playwright-report/
+test-results/
+allure-report/
+reports/
+
+#Agents and CLI
+.claude
+.playwright-cli/
+
+# Framework reports
+ASWatson_Automation/reports/
+
+# Runtime generated test data
+ASWatson_Automation/testdata/generated/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+package-lock.json
+screenshots/
+
+
+coverage/

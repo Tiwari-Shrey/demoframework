@@ -1,0 +1,7 @@
+node_modules
+dist
+build
+reports/allure-report
+reports/allure-results
+coverage
+*.min.js

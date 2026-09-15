@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+
+    "strict": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+
+    "allowJs": false,
+    "noEmit": true,
+
+    "types": ["node", "@playwright/test"],
+
+    "paths": {
+      "@pages/*": ["./pages/*"],
+      "@api/*": ["./api/*"],
+      "@batch/*": ["./batch/*"],
+      "@flows/*": ["./flows/*"],
+      "@core/*": ["./core/*"],
+      "@testdata/*": ["./testdata/*"],
+      "@database/*": ["./database/*"]
+    }
+  },
+
+  "include": [
+    "pages/**/*.ts",
+    "api/**/*.ts",
+    "batch/**/*.ts",
+    "flows/**/*.ts",
+    "core/**/*.ts",
+    "database/**/*.ts",
+    "tests/**/*.ts",
+    "e2e/**/*.ts",
+    "playwright.config.ts"
+  ]
+}

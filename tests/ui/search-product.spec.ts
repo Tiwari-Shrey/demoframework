@@ -1,7 +1,10 @@
 import { test, expect } from '@core/fixtures/ui.fixture';
 import { PRODUCTS_DATA, SAMPLE_PRODUCT } from '@testdata/ui/products-data';
 
-test.describe('demoblaze.com — Search / browse products', () => {
+test.describe('demoblaze.com — Search / browse products',
+  {
+    tag: ['@WPDTC-3'],
+  }, () => {
   test.beforeEach(async ({ homePage }) => {
     await homePage.open();
   });

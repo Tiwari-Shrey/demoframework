@@ -11,7 +11,10 @@ function uniqueUsername(label: string): string {
 
 const PASSWORD = 'Copilot@123';
 
-test.describe('demoblaze.com — Login', () => {
+test.describe('demoblaze.com — Login',
+  {
+    tag: ['@WPDTC-2'],
+  }, () => {
   test.beforeEach(async ({ loginPage }) => {
     await loginPage.open();
     if (await loginPage.isLoggedIn()) {

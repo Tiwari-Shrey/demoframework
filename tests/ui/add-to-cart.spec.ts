@@ -1,7 +1,10 @@
 import { authTest as test, expect } from '@core/fixtures/ui.fixture';
 import { SAMPLE_PRODUCT, SECOND_PRODUCT } from '@testdata/ui/products-data';
 
-test.describe('demoblaze.com — Add to cart', () => {
+test.describe('demoblaze.com — Add to cart',
+  {
+    tag: ['@WPDTC-1'],
+  }, () => {
   test.beforeEach(async ({ cartPage }) => {
     // Start every test from an empty cart so item counts are deterministic.
     await cartPage.clearCart();

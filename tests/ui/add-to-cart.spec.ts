@@ -10,7 +10,7 @@ test.describe('demoblaze.com — Add to cart',
 
   test('should add a product to the cart from the product page', 
   {
-    tag: ['@WPDTC-1'],
+    tag: ['@WPDTC-1']
   },     
   async ({
     homePage,

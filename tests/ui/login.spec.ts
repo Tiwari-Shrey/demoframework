@@ -12,9 +12,7 @@ function uniqueUsername(label: string): string {
 const PASSWORD = 'Copilot@123';
 
 test.describe('demoblaze.com — Login',
-  {
-    tag: ['@WPDTC-2'],
-  }, () => {
+   () => {
   test.beforeEach(async ({ loginPage }) => {
     await loginPage.open();
     if (await loginPage.isLoggedIn()) {
@@ -22,7 +20,11 @@ test.describe('demoblaze.com — Login',
     }
   });
 
-  test('should sign up a new user successfully', async ({ loginPage, sharedPage }, testInfo) => {
+  test('should sign up a new user successfully', 
+  {
+    tag: ['@WPDTC-2']
+  },
+  async ({ loginPage, sharedPage }, testInfo) => {
     const screenshot = await sharedPage.screenshot();
     await testInfo.attach('before-test', { body: screenshot, contentType: 'image/png' });
     const message = await loginPage.signup(uniqueUsername('signup'), PASSWORD);

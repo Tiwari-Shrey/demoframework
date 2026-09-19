@@ -22,7 +22,9 @@ test.describe('demoblaze.com — Login',
     }
   });
 
-  test('should sign up a new user successfully', async ({ loginPage }) => {
+  test('should sign up a new user successfully', async ({ loginPage, sharedPage }, testInfo) => {
+    const screenshot = await sharedPage.screenshot();
+    await testInfo.attach('before-test', { body: screenshot, contentType: 'image/png' });
     const message = await loginPage.signup(uniqueUsername('signup'), PASSWORD);
 
     expect(message).toBe(LOGIN_PAGE_DATA.alerts.signupSuccess);
@@ -30,7 +32,10 @@ test.describe('demoblaze.com — Login',
 
   test('should show an error when signing up with an already registered username @regression', async ({
     loginPage,
-  }) => {
+    sharedPage,
+  }, testInfo) => {
+    const screenshot = await sharedPage.screenshot();
+    await testInfo.attach('before-test', { body: screenshot, contentType: 'image/png' });
     const username = uniqueUsername('dup');
     await loginPage.ensureAccountExists(username, PASSWORD);
 
@@ -39,7 +44,9 @@ test.describe('demoblaze.com — Login',
     expect(message).toBe(LOGIN_PAGE_DATA.alerts.signupDuplicate);
   });
 
-  test('should show an error when logging in with a wrong password', async ({ loginPage }) => {
+  test('should show an error when logging in with a wrong password', async ({ loginPage, sharedPage }, testInfo) => {
+    const screenshot = await sharedPage.screenshot();
+    await testInfo.attach('before-test', { body: screenshot, contentType: 'image/png' });
     const username = uniqueUsername('wrongpw');
     await loginPage.ensureAccountExists(username, PASSWORD);
 
@@ -51,7 +58,10 @@ test.describe('demoblaze.com — Login',
 
   test('should show an error when logging in with a non-existent username', async ({
     loginPage,
-  }) => {
+    sharedPage,
+  }, testInfo) => {
+    const screenshot = await sharedPage.screenshot();
+    await testInfo.attach('before-test', { body: screenshot, contentType: 'image/png' });
     const message = await loginPage.loginExpectingAlert(
       uniqueUsername('missing'),
       'whatever-password'
@@ -60,7 +70,9 @@ test.describe('demoblaze.com — Login',
     expect(message).toBe(LOGIN_PAGE_DATA.alerts.loginUserNotFound);
   });
 
-  test('should log in successfully with valid credentials', async ({ loginPage }) => {
+  test('should log in successfully with valid credentials', async ({ loginPage, sharedPage }, testInfo) => {
+    const screenshot = await sharedPage.screenshot();
+    await testInfo.attach('before-test', { body: screenshot, contentType: 'image/png' });
     // Pulls from testdata/ui/login-credentials.xlsx (TEST_FLOW="login")
     // when $env:GLOBAL_VARIABLE_NAME = "login" is set; otherwise uses a fresh account.
     const override = getLoginCredentialsOverride();

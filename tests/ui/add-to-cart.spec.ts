@@ -14,7 +14,8 @@ test.describe('demoblaze.com — Add to cart',
     homePage,
     productDetailsPage,
     cartPage,
-  }) => {
+    sharedPage,
+  }, testInfo) => {
     await homePage.open();
     await homePage.openProduct(SAMPLE_PRODUCT.name);
     await productDetailsPage.waitUntilLoaded();
@@ -26,17 +27,22 @@ test.describe('demoblaze.com — Add to cart',
     await cartPage.waitForItemCount(1);
     expect(await cartPage.isProductInCart(SAMPLE_PRODUCT.name)).toBe(true);
     expect(await cartPage.getTotal()).toBe(SAMPLE_PRODUCT.price);
+    const screenshot = await sharedPage.screenshot();
+    await testInfo.attach('before-test', { body: screenshot, contentType: 'image/png' });
   });
 
   test('should add multiple products and reflect their combined total', async ({
     homePage,
     productDetailsPage,
     cartPage,
-  }) => {
+    sharedPage,
+  }, testInfo) => {
     for (const product of [SAMPLE_PRODUCT, SECOND_PRODUCT]) {
       await homePage.open();
       await homePage.openProduct(product.name);
       await productDetailsPage.waitUntilLoaded();
+      const screenshot = await sharedPage.screenshot();
+      await testInfo.attach('before-test', { body: screenshot, contentType: 'image/png' });
       await productDetailsPage.addToCart();
     }
 
@@ -49,7 +55,8 @@ test.describe('demoblaze.com — Add to cart',
     homePage,
     productDetailsPage,
     cartPage,
-  }) => {
+    sharedPage,
+  }, testInfo) => {
     await homePage.open();
     await homePage.openProduct(SAMPLE_PRODUCT.name);
     await productDetailsPage.waitUntilLoaded();
@@ -57,7 +64,8 @@ test.describe('demoblaze.com — Add to cart',
 
     await cartPage.open();
     await cartPage.waitForItemCount(2);
-
+    const screenshot = await sharedPage.screenshot();
+    await testInfo.attach('before-test', { body: screenshot, contentType: 'image/png' });
     expect(await cartPage.isPlaceOrderVisible()).toBe(true);
   });
 });

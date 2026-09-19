@@ -2,14 +2,15 @@ import { test, expect } from '@core/fixtures/ui.fixture';
 import { PRODUCTS_DATA, SAMPLE_PRODUCT } from '@testdata/ui/products-data';
 
 test.describe('demoblaze.com — Search / browse products',
-  {
-    tag: ['@WPDTC-3'],
-  }, () => {
+ () => {
   test.beforeEach(async ({ homePage }) => {
     await homePage.open();
   });
 
-  test('should display the full product catalog on the home page', async ({ homePage, sharedPage }, testInfo) => {
+  test('should display the full product catalog on the home page',
+  {
+    tag: ['@WPDTC-3']
+  },  async ({ homePage, sharedPage }, testInfo) => {
     const screenshot = await sharedPage.screenshot();
     await testInfo.attach('before-test', { body: screenshot, contentType: 'image/png' });
     const productCount = await homePage.getProductCount();

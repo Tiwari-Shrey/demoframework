@@ -55,7 +55,7 @@ export default defineConfig({
     /**
      * Keep current execution behavior.
      */
-    headless: true,
+    headless: false,
 
     /**
      * Required for the current application/environment.

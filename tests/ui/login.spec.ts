@@ -22,7 +22,7 @@ test.describe('demoblaze.com — Login',
 
   test('should sign up a new user successfully', 
   {
-    tag: ['@WPDTC-2']
+    tag: ['@WPDTC-2', '@AS360TC-258']
   },
   async ({ loginPage, sharedPage }, testInfo) => {
     const screenshot = await sharedPage.screenshot();

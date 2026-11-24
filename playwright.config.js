@@ -71,16 +71,19 @@ export default defineConfig({
     trace: 'retain-on-failure',
 
     /**
-     * Browser launch configuration
+     * Browser to use. Empty = Playwright's bundled Chromium.
+     * BROWSER_CHANNEL=msedge or chrome uses the browser installed on the machine.
      */
-    launchOptions: {
-      args: ['--start-maximized'],
-    },
+    channel: process.env.BROWSER_CHANNEL || undefined,
 
     /**
-     * Use browser window size instead of fixed viewport.
+     * Maximized window by default. START_MAXIMIZED=false uses a fixed
+     * 1920x1080 viewport instead (for machines where maximizing fails).
      */
-    viewport: null,
+    launchOptions: {
+      args: process.env.START_MAXIMIZED === 'false' ? [] : ['--start-maximized'],
+    },
+    viewport: process.env.START_MAXIMIZED === 'false' ? { width: 1920, height: 1080 } : null,
   },
 
   /**

@@ -93,4 +93,60 @@ test.describe('Daily Feast (lunch.sdettech.com)', () => {
       });
     }
   );
+
+  // Steps below mirror SDET360 test case DFTC-17 step by step.
+  test(
+    'Logout shows "Logging out?" confirmation dialog with correct text and buttons',
+    { tag: ['@DFTC-17'] },
+    async ({ loggedIn: menuPage }) => {
+      const dialog = LUNCH_DATA.logoutDialog;
+
+      await test.step('1. Log in with a valid Employee ID — menu screen is displayed', async () => {
+        // Login is done by the `loggedIn` fixture; confirm we are on the menu screen.
+        await expect(menuPage.main).toBeVisible();
+        await expect(menuPage.logoutButton).toBeVisible();
+      });
+
+      await test.step('2. Click Logout — "Logging out?" dialog with message and both buttons', async () => {
+        await menuPage.logoutButton.click();
+        await expect(menuPage.logoutDialog).toBeVisible();
+        await expect(
+          menuPage.logoutDialog.getByRole('heading', { name: dialog.title, exact: true })
+        ).toBeVisible();
+        await expect(
+          menuPage.logoutDialog.getByText(dialog.message, { exact: true })
+        ).toBeVisible();
+        await expect(menuPage.cancelLogoutButton).toBeVisible();
+        await expect(menuPage.cancelLogoutButton).toHaveText(dialog.cancelButton);
+        await expect(menuPage.confirmLogoutButton).toBeVisible();
+        await expect(menuPage.confirmLogoutButton).toHaveText(dialog.confirmButton);
+      });
+    }
+  );
+
+  // Steps below mirror SDET360 test case DFTC-21 step by step.
+  test(
+    'SMASH TO ENTER button opens EMPLOYEE ACCESS screen',
+    { tag: ['@DFTC-21'] },
+    async ({ landingPage, loginPage }) => {
+      await test.step('1. Open the site — welcome screen with SMASH TO ENTER and fruits image', async () => {
+        await landingPage.open();
+        await expect(landingPage.main).toBeVisible();
+        await expect(landingPage.enterButton).toBeVisible();
+        await expect(landingPage.heroImageButton).toBeVisible();
+      });
+
+      await test.step('2. Click SMASH TO ENTER — EMPLOYEE ACCESS with Employee ID, ACCESS PROFILE and DAILY FEAST back button', async () => {
+        await landingPage.enter();
+        await expect(loginPage.main).toBeVisible();
+        await expect(loginPage.heading).toBeVisible();
+        await expect(loginPage.employeeIdInput).toBeVisible();
+        await expect(loginPage.accessProfileButton).toBeVisible();
+        await expect(loginPage.accessProfileButton).toContainText('ACCESS PROFILE');
+        await expect(loginPage.backButton).toBeVisible();
+        await expect(loginPage.backButton).toContainText('DAILY FEAST');
+        await expect(landingPage.main).toBeHidden();
+      });
+    }
+  );
 });

@@ -8,4 +8,10 @@ export const LUNCH_DATA = {
       `Employee ID ${id} not registered. Please contact Admin.`,
     loggedOut: 'Logged out successfully.',
   },
+  logoutDialog: {
+    title: 'Logging out?',
+    message: "Are you sure you want to sign out? You'll need to log in again to book lunch.",
+    cancelButton: 'Wait, no!',
+    confirmButton: 'Yes, Bye! 👋',
+  },
 };

@@ -22,7 +22,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "agents:init": "playwright init-agents --loop=vscode",
-    "test:dftc": "playwright test --grep @DFTC"
+    "test:dftc": "playwright test --grep @DFTC",
+    "test:headless": "cross-env HEADLESS=true playwright test"
   },
   "keywords": [],
   "author": "",

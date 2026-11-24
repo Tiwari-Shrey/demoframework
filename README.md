@@ -18,9 +18,9 @@ cp .env.example .env   # then set EMPLOYEE_ID
 ## Running
 
 ```bash
-npm test                              # all tests
+npm test                              # all tests (headed — browser window visible)
 npx playwright test --grep @DFTC-3    # a single test case by tag
-npm run test:headed                   # with a visible browser
+npm run test:headless                 # without a browser window (HEADLESS=true)
 ```
 
 Reports: `reports/playwright-report`, `reports/custom-report/index.html`, and Allure (`npm run allure`).

@@ -53,9 +53,10 @@ export default defineConfig({
     baseURL: envConfig.baseUrl,
 
     /**
-     * Keep current execution behavior.
+     * Headed (visible browser) by default.
+     * Set HEADLESS=true to run without a browser window (e.g. on servers).
      */
-    headless: true,
+    headless: process.env.HEADLESS === 'true',
 
     /**
      * Required for the current application/environment.

@@ -1,5 +1,5 @@
 import { defineConfig } from '@playwright/test';
-import { LOGIN_PAGE_DATA } from './testdata/shared/login-data';
+import { envConfig } from './core/config/environment';
 
 export default defineConfig({
   /**
@@ -28,7 +28,7 @@ export default defineConfig({
    */
   reporter: [
     // Terminal reporter — prints test progress AND forwards worker stdout
-    // (the pino per-shelf logs) to the console. Without it nothing is printed.
+    // (console logs) to the console. Without it nothing is printed.
     ['list'],
     ['./core/reporters/SinglePageReporter.ts', { outputFile: 'reports/custom-report/index.html' }],
     ['html', { outputFolder: 'reports/playwright-report', open: 'never' }],
@@ -50,7 +50,7 @@ export default defineConfig({
      * Later this can be moved to:
      * config/environments/
      */
-    baseURL: LOGIN_PAGE_DATA.baseUrl,
+    baseURL: envConfig.baseUrl,
 
     /**
      * Keep current execution behavior.

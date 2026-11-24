@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       test_grep:
-        description: 'Optional: filter within WTCTH-normal-shelf-workflow.spec.ts by tag (e.g., @regression) or test name/substring'
+        description: 'Optional: filter by tag (e.g., @DFTC-1) or test name/substring'
         required: false
         default: ''
         type: string
@@ -43,13 +43,9 @@ jobs:
           "@
           $envContent | Out-File -FilePath .env -Encoding utf8
 
-      # Scoped to this single spec for now (matches the existing
-      # `test:sit` npm script on main). --grep further narrows within
-      # the file: default to @regression, or use test_grep to override.
+      # Runs all @DFTC tests by default; pass test_grep to narrow (e.g. @DFTC-3).
       - name: Run Playwright tests
-        env:
-          ENV: SIT
-        run: npx playwright test tests/wpd-planogram/ui/WTCTH-normal-shelf-workflow.spec.ts --grep "${{ github.event.inputs.test_grep != '' && github.event.inputs.test_grep || '@regression' }}"
+        run: npx playwright test --grep "${{ github.event.inputs.test_grep != '' && github.event.inputs.test_grep || '@DFTC' }}"
 
       - name: Upload Report
         uses: actions/upload-artifact@v4

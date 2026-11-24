@@ -14,12 +14,8 @@ reports/
 #Agents and CLI
 .claude
 .playwright-cli/
+.playwright-mcp/
 
-# Framework reports
-ASWatson_Automation/reports/
-
-# Runtime generated test data
-ASWatson_Automation/testdata/generated/
 
 # Environment / secrets
 .env

@@ -4,6 +4,7 @@ import { Page, Locator } from '@playwright/test';
 export class LoginPage {
   readonly main: Locator;
   readonly heading: Locator;
+  readonly portalSubtitle: Locator;
   readonly backButton: Locator;
   readonly employeeIdInput: Locator;
   readonly accessProfileButton: Locator;
@@ -12,6 +13,7 @@ export class LoginPage {
   constructor(private readonly page: Page) {
     this.main = page.getByRole('main', { name: 'Employee Login' });
     this.heading = this.main.getByRole('heading', { level: 2, name: 'EMPLOYEE ACCESS' });
+    this.portalSubtitle = this.main.getByText('SDET TECH • Daily Feast Portal', { exact: true });
     // "DAILY FEAST" button in the top-left corner that returns to the welcome screen.
     this.backButton = this.main.getByRole('button', { name: 'Back to home' });
     this.employeeIdInput = page.getByRole('textbox', { name: 'Employee ID' });

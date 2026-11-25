@@ -149,4 +149,143 @@ test.describe('Daily Feast (lunch.sdettech.com)', () => {
       });
     }
   );
+
+  // Steps below mirror SDET360 test case DFTC-22 step by step.
+  // Precondition: LUNCH_DATA.bookedEmployee has already booked lunch today.
+  test(
+    'Already-booked user lands on Leaderboard without FEAST navigation',
+    { tag: ['@DFTC-22'] },
+    async ({ page, landingPage, loginPage, menuPage, leaderboardPage }) => {
+      const { id, name } = LUNCH_DATA.bookedEmployee;
+      // Short pause after each step so the run is easy to follow (~6 s in total).
+      const pause = () => page.waitForTimeout(500);
+
+      await test.step('1. Open the site — title, "DAILY FEAST" heading and "BY SDET TECH" subtitle', async () => {
+        await landingPage.open();
+        await expect(page).toHaveTitle(LUNCH_DATA.pageTitle);
+        await expect(landingPage.heading).toBeVisible();
+        await expect(landingPage.subtitle).toBeVisible();
+        await pause();
+      });
+
+      await test.step('2. SMASH TO ENTER, fruits image and SCOREBOARD are visible', async () => {
+        await expect(landingPage.enterButton).toBeVisible();
+        await expect(landingPage.heroImageButton).toBeVisible();
+        await expect(landingPage.scoreboardButton).toBeVisible();
+        await pause();
+      });
+
+      await test.step('3. Click SMASH TO ENTER — EMPLOYEE ACCESS with portal text, Employee ID and ACCESS PROFILE', async () => {
+        await landingPage.enter();
+        await expect(loginPage.main).toBeVisible();
+        await expect(loginPage.heading).toBeVisible();
+        await expect(loginPage.portalSubtitle).toBeVisible();
+        await expect(loginPage.employeeIdInput).toBeVisible();
+        await expect(loginPage.employeeIdInput).toHaveAttribute(
+          'placeholder',
+          LUNCH_DATA.employeeIdPlaceholder
+        );
+        await expect(loginPage.accessProfileButton).toBeVisible();
+        await pause();
+      });
+
+      await test.step(`4. Enter Employee ID "${id}" — field shows ${id}`, async () => {
+        await loginPage.employeeIdInput.fill(id);
+        await expect(loginPage.employeeIdInput).toHaveValue(id);
+        await pause();
+      });
+
+      await test.step('5. Click ACCESS PROFILE — "already booked" message; LEADERBOARD opens instead of the menu', async () => {
+        await loginPage.accessProfileButton.click();
+        await expect(
+          page.getByRole('alert').filter({ hasText: LUNCH_DATA.messages.alreadyBooked(name) })
+        ).toBeVisible();
+        await expect(leaderboardPage.main).toBeVisible();
+        await expect(leaderboardPage.heading).toBeVisible();
+        await expect(menuPage.main).toBeHidden();
+        await pause();
+      });
+
+      let headerXp = 0;
+      await test.step('6. Header shows "Logged in: <name>", XP badge, Logout and Refresh icons', async () => {
+        await expect(leaderboardPage.loggedInLabel).toHaveText(`Logged in: ${name}`);
+        // Badge text = icon ligature ("monetization_on") + the XP number.
+        await expect(leaderboardPage.xpPoints).toHaveText(/\d+\s*$/);
+        headerXp = Number((await leaderboardPage.xpPoints.innerText()).match(/(\d+)\s*$/)![1]);
+        await expect(leaderboardPage.logoutButton).toBeVisible();
+        await expect(leaderboardPage.refreshButton).toBeVisible();
+        await pause();
+      });
+
+      await test.step('7. Banner "🏆 Top Food Smashers · <year> 🏆"; ranking card XP matches header and shows a badge', async () => {
+        await expect(leaderboardPage.banner).toHaveText(LUNCH_DATA.leaderboardBanner);
+        await expect(leaderboardPage.currentRankingCard).toContainText(`${headerXp} XP`);
+        // Badge = emoji followed by an upper-case title, e.g. "🏅 GRAND MASTER".
+        await expect(leaderboardPage.currentRankingCard).toContainText(
+          /\p{Extended_Pictographic}\s*[A-Z][A-Z ]+[A-Z]/u
+        );
+        await pause();
+      });
+
+      await test.step('8. Hall of Fame newest month first; Global Rankings 🥇🥈🥉 then 4,5,6…, by XP desc, ≤ 25 rows', async () => {
+        await expect(leaderboardPage.hallOfFameHeading).toBeVisible();
+        await expect(leaderboardPage.hallOfFameEntries.first()).toBeVisible();
+        const hallOfFame = await leaderboardPage.getHallOfFame();
+        for (const entry of hallOfFame) {
+          expect(entry.month, 'Hall of Fame month').toMatch(/^[A-Za-z]+ \d{4}$/);
+          expect(entry.winner.replace('👑', '').trim(), `winner for ${entry.month}`).not.toBe('');
+        }
+        const monthTimes = hallOfFame.map((e) => new Date(`1 ${e.month}`).getTime());
+        expect(monthTimes.every((t) => !Number.isNaN(t)), 'Hall of Fame months parse').toBe(true);
+        expect(monthTimes, 'Hall of Fame newest first').toEqual(
+          [...monthTimes].sort((a, b) => b - a)
+        );
+
+        await expect(leaderboardPage.globalRankingsHeading).toBeVisible();
+        await expect(leaderboardPage.rankingRows.first()).toBeVisible();
+        const rankings = await leaderboardPage.getRankings();
+        expect(rankings.length).toBeGreaterThan(0);
+        expect(rankings.length).toBeLessThanOrEqual(LUNCH_DATA.maxRankingRows);
+        const expectedRanks = rankings.map((_, i) => ['🥇', '🥈', '🥉'][i] ?? String(i + 1));
+        expect(rankings.map((r) => r.rank)).toEqual(expectedRanks);
+        const xps = rankings.map((r) => r.xp);
+        expect(xps, 'Global Rankings sorted by XP desc').toEqual([...xps].sort((a, b) => b - a));
+        await pause();
+      });
+
+      await test.step('9. Bottom navigation shows only HOME and BOARD (no FEAST)', async () => {
+        await expect(leaderboardPage.bottomNav).toBeVisible();
+        await expect(leaderboardPage.bottomNavLabels).toHaveText(['HOME', 'BOARD']);
+        await pause();
+      });
+
+      await test.step('10. Click Refresh — rankings reload without a page reload; user stays logged in', async () => {
+        // A window flag survives an in-page refresh but is lost on a full page reload.
+        await page.evaluate(() => ((window as any).__dftc22NoReload = true));
+        const leaderboardResponse = page.waitForResponse(
+          (res) => res.url().includes('/api/bookings/leaderboard') && res.ok()
+        );
+        await leaderboardPage.refreshButton.click();
+        await leaderboardResponse;
+        expect(await page.evaluate(() => (window as any).__dftc22NoReload)).toBe(true);
+        await expect(leaderboardPage.rankingRows.first()).toBeVisible();
+        await expect(leaderboardPage.loggedInLabel).toHaveText(`Logged in: ${name}`);
+        await pause();
+      });
+
+      await test.step('11. Click HOME — welcome screen opens', async () => {
+        await leaderboardPage.homeButton.click();
+        await expect(landingPage.main).toBeVisible();
+        await expect(leaderboardPage.main).toBeHidden();
+        await pause();
+      });
+
+      await test.step(`12. Click SMASH TO ENTER again — EMPLOYEE ACCESS with ${id} pre-filled`, async () => {
+        await landingPage.enter();
+        await expect(loginPage.main).toBeVisible();
+        await expect(loginPage.employeeIdInput).toHaveValue(id);
+        await pause();
+      });
+    }
+  );
 });

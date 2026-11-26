@@ -9,6 +9,7 @@ export const LUNCH_DATA = {
     name: 'Achyut Krishna Sharma',
   },
   employeeIdPlaceholder: 'e.g. 1034',
+  employeeIdHint: 'Enter your SDET Technologies employee number.',
   messages: {
     emptyEmployeeId: 'Please enter your Employee ID.',
     unregisteredEmployeeId: (id: string) =>

@@ -125,27 +125,143 @@ test.describe('Daily Feast (lunch.sdettech.com)', () => {
   );
 
   // Steps below mirror SDET360 test case DFTC-21 step by step.
+  // Never clicks YES in QUEST: RSVP, so no lunch is booked. Works whether or not
+  // the employee has booked today (login opens Today's Menu or the Leaderboard).
   test(
     'SMASH TO ENTER button opens EMPLOYEE ACCESS screen',
     { tag: ['@DFTC-21'] },
-    async ({ landingPage, loginPage }) => {
-      await test.step('1. Open the site — welcome screen with SMASH TO ENTER and fruits image', async () => {
+    async ({ page, landingPage, loginPage, menuPage, leaderboardPage }) => {
+      const { id, name } = LUNCH_DATA.bookedEmployee;
+      // Short pause after each step so the run is easy to follow.
+      const pause = () => page.waitForTimeout(500);
+      // Logged-in screen after ACCESS PROFILE: Today's Menu (not booked) or Leaderboard (booked).
+      const loggedInScreen = menuPage.main.or(leaderboardPage.main);
+      const logoutButton = page.getByRole('button', { name: 'Logout' }).filter({ visible: true });
+
+      const expectLoggedIn = async () => {
+        await expect(loggedInScreen).toBeVisible();
+        await expect(
+          page.getByText(`Logged in: ${name}`, { exact: true }).filter({ visible: true })
+        ).toBeVisible();
+        await expect(page.getByLabel('Your XP points').filter({ visible: true })).toBeVisible();
+        if (await menuPage.main.isVisible()) {
+          await expect(menuPage.todaysSpecialHeading).toBeVisible();
+        } else {
+          await expect(leaderboardPage.heading).toBeVisible();
+        }
+      };
+
+      await test.step('1. Open the site — title, DAILY FEAST, BY SDET TECH, fruits image, SMASH TO ENTER and SCOREBOARD', async () => {
         await landingPage.open();
+        await expect(page).toHaveTitle(LUNCH_DATA.pageTitle);
         await expect(landingPage.main).toBeVisible();
-        await expect(landingPage.enterButton).toBeVisible();
+        await expect(landingPage.heading).toBeVisible();
+        await expect(landingPage.subtitle).toBeVisible();
         await expect(landingPage.heroImageButton).toBeVisible();
+        await expect(landingPage.enterButton).toBeVisible();
+        await expect(landingPage.scoreboardButton).toBeVisible();
+        await pause();
       });
 
-      await test.step('2. Click SMASH TO ENTER — EMPLOYEE ACCESS with Employee ID, ACCESS PROFILE and DAILY FEAST back button', async () => {
+      await test.step('2. Click SMASH TO ENTER — EMPLOYEE ACCESS with portal text, Employee ID, hint, ACCESS PROFILE and DAILY FEAST back button', async () => {
         await landingPage.enter();
         await expect(loginPage.main).toBeVisible();
         await expect(loginPage.heading).toBeVisible();
+        await expect(loginPage.portalSubtitle).toBeVisible();
         await expect(loginPage.employeeIdInput).toBeVisible();
+        await expect(loginPage.employeeIdInput).toHaveAttribute(
+          'placeholder',
+          LUNCH_DATA.employeeIdPlaceholder
+        );
+        await expect(loginPage.main.getByText(LUNCH_DATA.employeeIdHint, { exact: true })).toBeVisible();
         await expect(loginPage.accessProfileButton).toBeVisible();
         await expect(loginPage.accessProfileButton).toContainText('ACCESS PROFILE');
         await expect(loginPage.backButton).toBeVisible();
         await expect(loginPage.backButton).toContainText('DAILY FEAST');
         await expect(landingPage.main).toBeHidden();
+        await pause();
+      });
+
+      await test.step('3. Click DAILY FEAST back button — welcome screen is displayed again', async () => {
+        await loginPage.backButton.click();
+        await expect(landingPage.main).toBeVisible();
+        await expect(loginPage.main).toBeHidden();
+        await pause();
+      });
+
+      await test.step('4. Click the fruits image — EMPLOYEE ACCESS opens', async () => {
+        await landingPage.heroImageButton.click();
+        await expect(loginPage.main).toBeVisible();
+        await expect(loginPage.heading).toBeVisible();
+        await pause();
+      });
+
+      await test.step(`5. Enter Employee ID "${id}" — field shows ${id}`, async () => {
+        await loginPage.employeeIdInput.fill(id);
+        await expect(loginPage.employeeIdInput).toHaveValue(id);
+        await pause();
+      });
+
+      await test.step('6. Click ACCESS PROFILE — logged in; Today\'s Menu or Leaderboard with name and XP badge', async () => {
+        await loginPage.accessProfileButton.click();
+        await expectLoggedIn();
+        await pause();
+      });
+
+      await test.step('7. Click HOME in the bottom navigation — welcome screen is displayed', async () => {
+        await leaderboardPage.homeButton.click();
+        await expect(landingPage.main).toBeVisible();
+        await pause();
+      });
+
+      await test.step(`8. Click SMASH TO ENTER — EMPLOYEE ACCESS with ${id} pre-filled`, async () => {
+        await landingPage.enter();
+        await expect(loginPage.main).toBeVisible();
+        await expect(loginPage.employeeIdInput).toHaveValue(id);
+        await pause();
+      });
+
+      await test.step('9. Click ACCESS PROFILE — logged in again on the same screen', async () => {
+        await loginPage.accessProfileButton.click();
+        await expectLoggedIn();
+        await pause();
+      });
+
+      await test.step('10. Click Logout — "Logging out?" dialog with message, WAIT, NO! and YES, BYE! 👋', async () => {
+        const dialog = LUNCH_DATA.logoutDialog;
+        await logoutButton.click();
+        await expect(menuPage.logoutDialog).toBeVisible();
+        await expect(
+          menuPage.logoutDialog.getByRole('heading', { name: dialog.title, exact: true })
+        ).toBeVisible();
+        await expect(menuPage.logoutDialog.getByText(dialog.message, { exact: true })).toBeVisible();
+        await expect(menuPage.cancelLogoutButton).toHaveText(dialog.cancelButton);
+        await expect(menuPage.confirmLogoutButton).toHaveText(dialog.confirmButton);
+        await pause();
+      });
+
+      await test.step('11. Click WAIT, NO! — dialog closes; user stays logged in', async () => {
+        await menuPage.cancelLogoutButton.click();
+        await expect(menuPage.logoutDialog).toBeHidden();
+        await expectLoggedIn();
+        await pause();
+      });
+
+      await test.step('12. Click Logout, then YES, BYE! 👋 — "Logged out successfully" and welcome screen', async () => {
+        await logoutButton.click();
+        await menuPage.confirmLogoutButton.click();
+        await expect(
+          page.getByRole('alert').filter({ hasText: LUNCH_DATA.messages.loggedOut })
+        ).toBeVisible();
+        await expect(landingPage.main).toBeVisible();
+        await pause();
+      });
+
+      await test.step('13. Click SMASH TO ENTER — EMPLOYEE ACCESS with Employee ID field empty', async () => {
+        await landingPage.enter();
+        await expect(loginPage.main).toBeVisible();
+        await expect(loginPage.employeeIdInput).toHaveValue('');
+        await pause();
       });
     }
   );

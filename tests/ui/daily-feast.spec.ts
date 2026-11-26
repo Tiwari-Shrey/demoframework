@@ -467,4 +467,33 @@ test.describe('Daily Feast (lunch.sdettech.com)', () => {
       });
     }
   );
+
+  // Steps below mirror SDET360 test case DFTC-23 step by step.
+  // Precondition: EMPLOYEE_ID (.env) has not booked lunch today. A booked user lands
+  // on the Leaderboard directly, where BOARD is not a clickable button.
+  test(
+    'Logged-in employee accesses leaderboard from bottom navigation BOARD button',
+    { tag: ['@DFTC-23'] },
+    async ({ loggedIn: menuPage, leaderboardPage }) => {
+      await test.step('1. Log in with a valid test Employee ID — bottom navigation with BOARD button is visible', async () => {
+        // Login is done by the `loggedIn` fixture; confirm we are logged in.
+        await expect(menuPage.main).toBeVisible();
+        await expect(menuPage.loggedInLabel).toBeVisible();
+        await expect(leaderboardPage.bottomNav).toBeVisible();
+        await expect(leaderboardPage.boardButton).toBeVisible();
+        await expect(leaderboardPage.boardButton).toContainText('BOARD');
+      });
+
+      await test.step('2. Click BOARD — Leaderboard with Hall of Fame, Global Rankings, Refresh and YOUR CURRENT RANKING', async () => {
+        await leaderboardPage.boardButton.click();
+        await expect(leaderboardPage.main).toBeVisible();
+        await expect(leaderboardPage.heading).toBeVisible();
+        await expect(menuPage.main).toBeHidden();
+        await expect(leaderboardPage.hallOfFameHeading).toBeVisible();
+        await expect(leaderboardPage.globalRankingsHeading).toBeVisible();
+        await expect(leaderboardPage.refreshButton).toBeVisible();
+        await expect(leaderboardPage.currentRankingCard).toBeVisible();
+      });
+    }
+  );
 });

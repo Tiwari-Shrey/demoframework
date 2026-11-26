@@ -21,6 +21,7 @@ export class LeaderboardPage {
   readonly rankingRows: Locator;
   readonly refreshButton: Locator;
   readonly homeButton: Locator;
+  readonly boardButton: Locator;
   readonly bottomNav: Locator;
   /** Visible labels of the bottom navigation items (HOME, BOARD, FEAST…). */
   readonly bottomNavLabels: Locator;
@@ -46,6 +47,8 @@ export class LeaderboardPage {
     this.homeButton = this.bottomNav.getByRole('button', {
       name: 'Home',
     });
+    // Clickable only from other screens (e.g. Today's Menu); on the Leaderboard it is plain text.
+    this.boardButton = this.bottomNav.getByRole('button', { name: /board/i });
     // Icon ligatures ("home", "leaderboard") are lowercase, so only the labels match.
     // FEAST stays in the DOM but is hidden for users who already booked, so keep only visible ones.
     this.bottomNavLabels = this.bottomNav

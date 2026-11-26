@@ -2,8 +2,8 @@ export const LUNCH_DATA = {
   pageTitle: 'Daily Feast – Book Your Lunch',
   // An ID that is not registered in the system — used for negative login checks.
   unregisteredEmployeeId: '999999',
-  // A registered employee who has ALREADY booked lunch today, so login goes
-  // straight to the Leaderboard instead of Today's Menu (DFTC-22).
+  // Registered employee used by DFTC-22. If they already booked today, login goes
+  // straight to the Leaderboard; otherwise to Today's Menu. The test handles both.
   bookedEmployee: {
     id: '1132',
     name: 'Achyut Krishna Sharma',

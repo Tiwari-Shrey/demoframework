@@ -195,14 +195,31 @@ test.describe('Daily Feast (lunch.sdettech.com)', () => {
         await pause();
       });
 
-      await test.step('5. Click ACCESS PROFILE — "already booked" message; LEADERBOARD opens instead of the menu', async () => {
+      // The app routes by today's booking status: already booked → Leaderboard,
+      // not booked yet → Today's Menu. Both are valid, so the test follows
+      // whichever one the app shows and checks the right things for it.
+      let alreadyBooked = false;
+      await test.step('5. Click ACCESS PROFILE — Leaderboard (already booked) or Today\'s Menu (not booked)', async () => {
         await loginPage.accessProfileButton.click();
-        await expect(
-          page.getByRole('alert').filter({ hasText: LUNCH_DATA.messages.alreadyBooked(name) })
-        ).toBeVisible();
-        await expect(leaderboardPage.main).toBeVisible();
-        await expect(leaderboardPage.heading).toBeVisible();
-        await expect(menuPage.main).toBeHidden();
+        await expect(leaderboardPage.main.or(menuPage.main)).toBeVisible();
+        alreadyBooked = await leaderboardPage.main.isVisible();
+
+        if (alreadyBooked) {
+          await expect(
+            page.getByRole('alert').filter({ hasText: LUNCH_DATA.messages.alreadyBooked(name) })
+          ).toBeVisible();
+          await expect(leaderboardPage.heading).toBeVisible();
+          await expect(menuPage.main).toBeHidden();
+        } else {
+          // Not booked today: menu opens with FEAST in the bottom nav; go to BOARD
+          // so the remaining Leaderboard steps run the same way.
+          await expect(menuPage.loggedInLabel).toHaveText(`Logged in: ${name}`);
+          await expect(menuPage.todaysSpecialHeading).toBeVisible();
+          await expect(leaderboardPage.bottomNavLabels).toHaveText(['HOME', 'BOARD', 'FEAST']);
+          await leaderboardPage.boardButton.click();
+          await expect(leaderboardPage.main).toBeVisible();
+          await expect(leaderboardPage.heading).toBeVisible();
+        }
         await pause();
       });
 
@@ -253,9 +270,11 @@ test.describe('Daily Feast (lunch.sdettech.com)', () => {
         await pause();
       });
 
-      await test.step('9. Bottom navigation shows only HOME and BOARD (no FEAST)', async () => {
+      await test.step('9. Bottom navigation: HOME and BOARD; FEAST only if not booked today', async () => {
         await expect(leaderboardPage.bottomNav).toBeVisible();
-        await expect(leaderboardPage.bottomNavLabels).toHaveText(['HOME', 'BOARD']);
+        await expect(leaderboardPage.bottomNavLabels).toHaveText(
+          alreadyBooked ? ['HOME', 'BOARD'] : ['HOME', 'BOARD', 'FEAST']
+        );
         await pause();
       });
 

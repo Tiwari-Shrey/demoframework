@@ -1,6 +1,15 @@
 import { defineConfig } from '@playwright/test';
 import { envConfig } from './core/config/environment';
 
+// null = maximized window; otherwise a fixed window size (see `use` below).
+const fixedViewport =
+  process.env.START_MAXIMIZED === 'false'
+    ? {
+        width: Number(process.env.VIEWPORT_WIDTH) || 1280,
+        height: Number(process.env.VIEWPORT_HEIGHT) || 720,
+      }
+    : null;
+
 export default defineConfig({
   /**
    * Test specifications
@@ -77,13 +86,17 @@ export default defineConfig({
     channel: process.env.BROWSER_CHANNEL || undefined,
 
     /**
-     * Maximized window by default. START_MAXIMIZED=false uses a fixed
-     * 1920x1080 viewport instead (for machines where maximizing fails).
+     * Maximized window by default. START_MAXIMIZED=false uses a fixed window
+     * of VIEWPORT_WIDTH x VIEWPORT_HEIGHT (default 1280x720) instead, for machines
+     * where maximizing fails. Keep it smaller than that machine's screen, or the
+     * page is drawn bigger than the window and gets cut off.
      */
     launchOptions: {
-      args: process.env.START_MAXIMIZED === 'false' ? [] : ['--start-maximized'],
+      args: fixedViewport
+        ? [`--window-size=${fixedViewport.width},${fixedViewport.height + 100}`]
+        : ['--start-maximized'],
     },
-    viewport: process.env.START_MAXIMIZED === 'false' ? { width: 1920, height: 1080 } : null,
+    viewport: fixedViewport,
   },
 
   /**

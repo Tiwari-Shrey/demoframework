@@ -124,6 +124,50 @@ test.describe('Daily Feast (lunch.sdettech.com)', () => {
     }
   );
 
+  // Steps below mirror SDET360 test case DFTC-20 step by step.
+  // INTENTIONAL FAILURE: step 4 expects Today's Menu for an unregistered ID,
+  // which the app always rejects — so this test fails on every run (report demo).
+  test(
+    'Welcome screen entry leads to the employee login form',
+    { tag: ['@DFTC-20'] },
+    async ({ page, landingPage, loginPage, menuPage }) => {
+      const id = LUNCH_DATA.unregisteredEmployeeId;
+      // Short pause after each step so the run is easy to follow.
+      const pause = () => page.waitForTimeout(500);
+
+      await test.step('1. Navigate to welcome screen — SMASH TO ENTER and fruits image are displayed', async () => {
+        await landingPage.open();
+        await expect(landingPage.main).toBeVisible();
+        await expect(landingPage.enterButton).toBeVisible();
+        await expect(landingPage.heroImageButton).toBeVisible();
+        await pause();
+      });
+
+      await test.step('2. "DAILY FEAST" with "BY SDET TECH" and the SCOREBOARD button are displayed', async () => {
+        await expect(landingPage.heading).toBeVisible();
+        await expect(landingPage.subtitle).toBeVisible();
+        await expect(landingPage.scoreboardButton).toBeVisible();
+        await pause();
+      });
+
+      await test.step('3. Click SMASH TO ENTER — EMPLOYEE ACCESS with portal text, Employee ID and ACCESS PROFILE', async () => {
+        await landingPage.enter();
+        await expect(loginPage.main).toBeVisible();
+        await expect(loginPage.portalSubtitle).toBeVisible();
+        await expect(loginPage.employeeIdInput).toBeVisible();
+        await expect(loginPage.accessProfileButton).toBeVisible();
+        await pause();
+      });
+
+      await test.step(`4. Enter Employee ID "${id}" and click ACCESS PROFILE — Today's Menu opens`, async () => {
+        await loginPage.submitEmployeeId(id);
+        // Fails by design: the app shows "Employee ID 999999 not registered" instead.
+        await expect(menuPage.main).toBeVisible();
+        await expect(menuPage.todaysSpecialHeading).toBeVisible();
+      });
+    }
+  );
+
   // Steps below mirror SDET360 test case DFTC-21 step by step.
   // Never clicks YES in QUEST: RSVP, so no lunch is booked. Works whether or not
   // the employee has booked today (login opens Today's Menu or the Leaderboard).

@@ -543,4 +543,67 @@ test.describe('Daily Feast (lunch.sdettech.com)', () => {
       });
     }
   );
+
+  // Steps below mirror SDET360 test case DFTC-25 step by step.
+  // Precondition: EMPLOYEE_ID (.env) has not booked lunch today, so login opens Today's Menu.
+  // The app saves the session in localStorage as "employeeId" and "employeeName".
+  test(
+    'Employee ID and name are removed from browser storage after logout',
+    { tag: ['@DFTC-25'] },
+    async ({ page, context, loggedIn: menuPage, landingPage }) => {
+      const id = envConfig.employeeId;
+      let name = '';
+
+      const readBrowserStorage = async () => ({
+        ...(await page.evaluate(() => ({
+          local: { ...localStorage },
+          session: { ...sessionStorage },
+        }))),
+        cookies: await context.cookies(),
+      });
+
+      await test.step('1. Log in with a valid test Employee ID — employee is on the menu screen', async () => {
+        // Login is done by the `loggedIn` fixture; confirm we are on the menu screen.
+        await expect(menuPage.main).toBeVisible();
+        await expect(menuPage.loggedInLabel).toHaveText(/^Logged in: .+/);
+        // textContent keeps the original casing (the label is upper-cased by CSS).
+        name = (await menuPage.loggedInLabel.textContent())!.replace(/^Logged in:/, '').trim();
+      });
+
+      await test.step('2. Employee ID and name are present in browser storage', async () => {
+        const storage = await readBrowserStorage();
+        expect(storage.local, 'localStorage').toHaveProperty('employeeId', id);
+        expect(storage.local, 'localStorage').toHaveProperty('employeeName', name);
+      });
+
+      await test.step('3. Click Logout and confirm with "Yes, Bye! 👋" — logout completes and welcome screen opens', async () => {
+        await menuPage.logoutButton.click();
+        await expect(menuPage.logoutDialog).toBeVisible();
+        await expect(menuPage.confirmLogoutButton).toHaveText(LUNCH_DATA.logoutDialog.confirmButton);
+        await menuPage.confirmLogoutButton.click();
+        await expect(
+          page.getByRole('alert').filter({ hasText: LUNCH_DATA.messages.loggedOut })
+        ).toBeVisible();
+        await expect(landingPage.main).toBeVisible();
+        await expect(menuPage.main).toBeHidden();
+      });
+
+      await test.step('4. Employee ID and name are no longer in localStorage, sessionStorage or cookies', async () => {
+        const storage = await readBrowserStorage();
+        for (const [area, entries] of Object.entries({
+          localStorage: storage.local,
+          sessionStorage: storage.session,
+        })) {
+          expect(entries, area).not.toHaveProperty('employeeId');
+          expect(entries, area).not.toHaveProperty('employeeName');
+          const values = Object.values(entries);
+          expect(values, `${area} holds the Employee ID`).not.toContain(id);
+          expect(values, `${area} holds the employee name`).not.toContain(name);
+        }
+        const cookies = JSON.stringify(storage.cookies);
+        expect(cookies, 'cookies hold the Employee ID').not.toContain(`"${id}"`);
+        expect(cookies, 'cookies hold the employee name').not.toContain(name);
+      });
+    }
+  );
 });

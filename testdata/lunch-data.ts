@@ -15,6 +15,7 @@ export const LUNCH_DATA = {
     unregisteredEmployeeId: (id: string) =>
       `Employee ID ${id} not registered. Please contact Admin.`,
     loggedOut: 'Logged out successfully.',
+    loggedOutFull: 'Logged out successfully. See you tomorrow! 👋',
     alreadyBooked: (name: string) =>
       `Hey ${name}! You've already booked today. Check your score! 🎉`,
   },

@@ -1,5 +1,6 @@
 import { test, expect } from '@core/fixtures/ui.fixture';
 import { LUNCH_DATA } from '@testdata/lunch-data';
+import { envConfig } from '@core/config/environment';
 
 test.describe('Daily Feast (lunch.sdettech.com)', () => {
   // Steps below mirror SDET360 test case DFTC-1 step by step.
@@ -493,6 +494,86 @@ test.describe('Daily Feast (lunch.sdettech.com)', () => {
         await expect(leaderboardPage.globalRankingsHeading).toBeVisible();
         await expect(leaderboardPage.refreshButton).toBeVisible();
         await expect(leaderboardPage.currentRankingCard).toBeVisible();
+      });
+    }
+  );
+
+  // Steps below mirror SDET360 test case DFTC-24 steps 1–6.
+  // Steps 7–8 ("navigate directly to menu / booking screen URL") are not automated:
+  // the app is a single-page app where every screen lives at "/" with no URL routing
+  // (/menu, /booking return 404), so there is no such URL to open.
+  test(
+    'Successful logout from leaderboard screen clears session and redirects to welcome screen',
+    {
+      tag: ['@DFTC-24'],
+      annotation: {
+        type: 'not automated',
+        description:
+          'Steps 7–8 skipped: the app has no menu/booking screen URLs (single-page app, all screens at "/"). Test case needs updating in SDET360.',
+      },
+    },
+    async ({ page, context, landingPage, loginPage, menuPage, leaderboardPage }) => {
+      const dialog = LUNCH_DATA.logoutDialog;
+
+      await test.step('1. Open the site and log in with a valid Employee ID — employee is logged in', async () => {
+        await landingPage.open();
+        await landingPage.enter();
+        await loginPage.submitEmployeeId(envConfig.employeeId);
+        // Not booked today → Today's Menu; already booked → Leaderboard.
+        await expect(menuPage.main.or(leaderboardPage.main)).toBeVisible();
+        await expect(page.getByText(/^Logged in:/).filter({ visible: true })).toBeVisible();
+      });
+
+      await test.step('2. Navigate to the Leaderboard — Leaderboard with Logout option is displayed', async () => {
+        if (await menuPage.main.isVisible()) {
+          await leaderboardPage.boardButton.click();
+        }
+        await expect(leaderboardPage.main).toBeVisible();
+        await expect(leaderboardPage.heading).toBeVisible();
+        await expect(leaderboardPage.logoutButton).toBeVisible();
+        // Precondition for step 6: the session is saved in the browser while logged in.
+        expect(await page.evaluate(() => localStorage.getItem('employeeId'))).toBe(
+          envConfig.employeeId
+        );
+      });
+
+      await test.step('3. Click Logout — "Logging out?" dialog with message, "Wait, no!" and "Yes, Bye! 👋"', async () => {
+        await leaderboardPage.logoutButton.click();
+        await expect(menuPage.logoutDialog).toBeVisible();
+        await expect(
+          menuPage.logoutDialog.getByRole('heading', { name: dialog.title, exact: true })
+        ).toBeVisible();
+        await expect(menuPage.logoutDialog.getByText(dialog.message, { exact: true })).toBeVisible();
+        await expect(menuPage.cancelLogoutButton).toHaveText(dialog.cancelButton);
+        await expect(menuPage.confirmLogoutButton).toHaveText(dialog.confirmButton);
+      });
+
+      await test.step('4. Click "Yes, Bye! 👋" — success message and welcome screen', async () => {
+        await menuPage.confirmLogoutButton.click();
+        await expect(
+          page.getByRole('alert').filter({ hasText: LUNCH_DATA.messages.loggedOutFull })
+        ).toBeVisible();
+        await expect(landingPage.main).toBeVisible();
+        await expect(leaderboardPage.main).toBeHidden();
+      });
+
+      await test.step('5. Open EMPLOYEE ACCESS — Employee ID field is empty', async () => {
+        await landingPage.enter();
+        await expect(loginPage.main).toBeVisible();
+        await expect(loginPage.employeeIdInput).toHaveValue('');
+      });
+
+      await test.step('6. Saved Employee ID and name are removed from browser storage', async () => {
+        const storage = await page.evaluate(() => ({
+          local: { ...localStorage },
+          session: { ...sessionStorage },
+        }));
+        expect(storage.local, 'localStorage').not.toHaveProperty('employeeId');
+        expect(storage.local, 'localStorage').not.toHaveProperty('employeeName');
+        const saved = JSON.stringify([storage, await context.cookies()]);
+        expect(saved, 'browser storage contains Employee ID').not.toContain(
+          `"${envConfig.employeeId}"`
+        );
       });
     }
   );

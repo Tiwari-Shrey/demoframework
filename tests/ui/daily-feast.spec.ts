@@ -460,10 +460,10 @@ test.describe('Daily Feast (lunch.sdettech.com)', () => {
         await pause();
       });
 
-      await test.step(`12. Click SMASH TO ENTER again — EMPLOYEE ACCESS with ${id} pre-filled`, async () => {
+      await test.step('12. Click SMASH TO ENTER again — EMPLOYEE ACCESS with Employee ID field empty', async () => {
         await landingPage.enter();
         await expect(loginPage.main).toBeVisible();
-        await expect(loginPage.employeeIdInput).toHaveValue(id);
+        await expect(loginPage.employeeIdInput).toHaveValue('');
         await pause();
       });
     }
